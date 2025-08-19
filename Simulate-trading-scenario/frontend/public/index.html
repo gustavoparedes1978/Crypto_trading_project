@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Exchange Simulation</title>
+    <link rel="stylesheet" href="style.css">
+	
+</head>
+<body>
+    <h1>P2P Exchange Simulation on Sepolia</h1>
+    <div class="wallet-info">
+        <p>Wallet connected: <span id="wallet-address"></span></p>
+        <p>ETH Balance: <span id="eth-balance"></span></p>
+        <p>tUSDT Balance: <span id="usdt-balance"></span></p>
+    </div>
+    <div class="controls">
+        <button id="connect-wallet">Connect MetaMask</button>
+        <button id="execute-trade" disabled>Execute Trade</button>
+    </div>
+    <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js"></script>
+    <script src="./src/app.js"></script>
+</body>
+</html>

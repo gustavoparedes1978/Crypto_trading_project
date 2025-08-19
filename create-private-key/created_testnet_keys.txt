@@ -1,0 +1,8 @@
+/*
+PS C:\Users\gusta\OneDrive\Documents\Order_Balance_Simulator\create-private-key> py ./create_private_key.py
+New Testnet Private Key (Keep this secret!):
+04d7a1e166cc911e4c76c1d231984018fafd26925c77c56dd688910983b1aea4
+
+New Testnet Public Address:
+0x2D09CA4D5A7100f9A510c6d90fC5DE96e2CeeC21
+*/

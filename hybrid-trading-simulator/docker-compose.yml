@@ -1,0 +1,120 @@
+services:
+  # The FastAPI application serving API endpoints
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the application code for real-time changes during development
+      - ./backend/app:/app/app
+    env_file:
+      - ./.env
+    environment:
+      # These variables are populated from the .env file
+      MONGODB_URI: ${MONGODB_URI}
+      RABBITMQ_URI: ${RABBITMQ_URI}
+      BINANCE_API_KEY: ${BINANCE_API_KEY}
+      BINANCE_SECRET: ${BINANCE_SECRET}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+      mongo3:
+        condition: service_healthy
+
+  # A separate worker that consumes trade messages from RabbitMQ and handles on-chain settlement
+  settlement-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: settlement-worker
+    # The command to start the Python consumer script
+    command: python -m app.consumer
+    volumes:
+      - ./backend/app:/app/app
+    env_file:
+      - ./.env
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      RABBITMQ_URI: ${RABBITMQ_URI}
+      ETH_TESTNET_URL: ${ETH_TESTNET_URL}
+      SETTLEMENT_CONTRACT_ADDRESS: ${SETTLEMENT_CONTRACT_ADDRESS}
+      SETTLEMENT_CONTRACT_ABI: ${SETTLEMENT_CONTRACT_ABI}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+      mongo3:
+        condition: service_healthy
+
+  # RabbitMQ message queue for reliable, asynchronous communication
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # AMQP protocol port for connections
+      - "15672:15672" # Management UI port
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # MongoDB Replica Set (3 nodes for high availability)
+  mongo1:
+    image: mongo:7
+    container_name: mongo1
+    volumes:
+      - mongo1-data:/data/db
+    command: ["--replSet", "dbrs", "--bind_ip_all"]
+    healthcheck:
+        test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")'"]
+        interval: 10s
+        timeout: 10s
+        retries: 5
+    restart: always
+
+  mongo2:
+    image: mongo:7
+    container_name: mongo2
+    volumes:
+      - mongo2-data:/data/db
+    command: ["--replSet", "dbrs", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - mongo1
+    restart: always
+
+  mongo3:
+    image: mongo:7
+    container_name: mongo3
+    volumes:
+      - mongo3-data:/data/db
+    command: ["--replSet", "dbrs", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - mongo1
+    restart: always
+
+# Define named volumes to persist data even if containers are removed
+volumes:
+  mongo1-data:
+  mongo2-data:
+  mongo3-data:

@@ -1,0 +1,15 @@
+body {
+    font-family: sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+.wallet-info {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #fff;
+}
+.controls button {
+    padding: 10px 15px;
+    cursor: pointer;
+}
